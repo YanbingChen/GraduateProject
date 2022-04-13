@@ -1,5 +1,7 @@
 module UDP_Logger;
 
+# Divided by protocol : UDP (Unused)
+
 export {
     # Append the value LOG to the Log::ID enumerable.
     redef enum Log::ID += { LOG };

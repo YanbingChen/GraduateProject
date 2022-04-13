@@ -2,7 +2,6 @@ import csv
 
 import torch
 from nn.network import NN
-from nn.data import MYDATASET
 from nn.train import train
 from nn.config import cfg
 from sklearn.metrics import roc_auc_score, precision_recall_fscore_support

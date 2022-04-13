@@ -1,5 +1,7 @@
 module ICMP_Logger;
 
+# Divided by protocol : ICMP (Unused)
+
 export {
     # Append the value LOG to the Log::ID enumerable.
     redef enum Log::ID += { LOG };

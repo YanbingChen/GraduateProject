@@ -1,5 +1,7 @@
 module TCP_Logger;
 
+# Divided by protocol : TCP (Unused)
+
 export {
     # Append the value LOG to the Log::ID enumerable.
     redef enum Log::ID += { LOG };

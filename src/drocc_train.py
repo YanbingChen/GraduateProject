@@ -15,6 +15,8 @@ from DROCC.drocc_trainer import DROCCTrainer
 from dataset import ConnlogsDataset
 from nn.network import DNN
 
+# Main method for Anomaly-Detection-module
+
 def adjust_learning_rate(epoch, total_epochs, only_ce_epochs, learning_rate, optimizer):
     """Adjust learning rate during training.
 
@@ -90,7 +92,8 @@ def main():
         trainer.save(args.model_dir)
 
     else:
-        if os.path.exists(os.path.join(args.model_dir, 'model.pt')):
+        # Evaluating the existing model (this F1 is aiming at Normal data)
+        if os.path.exists(os.path.join(args.model_dir)):
             trainer.load(args.model_dir)
             print("Saved Model Loaded")
         else:
@@ -110,6 +113,7 @@ def main():
 def run_test(nn, dataset_dir):
     # Create train data loader
     test_dataset = ConnlogsDataset(dataset_dir, nn_type='nn_oneclass_period', tvt_type="test", timestamp=True)
+    # shuffle should equal to false if the nn is memory, but nevermind now
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size,
                                               shuffle=True)
 
@@ -139,7 +143,7 @@ def run_test(nn, dataset_dir):
     a = 1 - labels
     b = 1 - scores
     auc_score = roc_auc_score(a, b)
-    # Evaluation based on https://openreview.net/forum?id=BJJLHbb0-
+    # Evaluation based on https://openreview.net/forum?id=BJJLHbb0-   --referred from DROCC (bullshit but beautiful)
     thresh = np.percentile(b, 20)
     y_pred = np.where(b >= thresh, 1, 0)
     prec, recall, f1_score, _ = precision_recall_fscore_support(
@@ -154,6 +158,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Simple Training')
     parser.add_argument('--batch_size', type=int, default=128, metavar='N',
                         help='batch size for training')
+    # may be shorter if loss is too small
     parser.add_argument('--epochs', type=int, default=150, metavar='N',
                         help='number of epochs to train')
     parser.add_argument('-oce,', '--only_ce_epochs', type=int, default=50, metavar='N',
@@ -172,7 +177,8 @@ if __name__ == '__main__':
                         help='path where to save checkpoint')
     parser.add_argument('--one_class_adv', type=int, default=1, metavar='N',
                         help='adv loss to be used or not, 1:use 0:not use(only CE)')
-    parser.add_argument('--radius', type=float, default=0.2, metavar='N',
+    # sqrt(dimension)/2 may be good
+    parser.add_argument('--radius', type=float, default=2.40, metavar='N',
                         help='radius corresponding to the definition of set N_i(r)')
     parser.add_argument('--lamda', type=float, default=1, metavar='N',
                         help='Weight to the adversarial loss')

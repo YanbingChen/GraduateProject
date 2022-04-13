@@ -8,7 +8,7 @@ import numpy as np
 from log_reader import LogReader
 from gen_anomal import generate_anormal
 
-#Prepare dataset
+# Prepare dataset
 
 class ConnlogsDataset(Dataset):
     def __init__(self, dataset_root, nn_type, tvt_type, timestamp=False):

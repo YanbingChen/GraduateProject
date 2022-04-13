@@ -11,6 +11,7 @@ import os
 
 '''
     gen_period_data.py
+    Steps for all periodicity-detection-module
     1. Read log file from LOG_FILE
     2. Feed log for period detection algorithm (specified by PERIOD_DRIVE)
     3. Output result
