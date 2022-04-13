@@ -33,14 +33,13 @@ A Graduation project repository for PKU
 ### Training
 - Train NN.
   - /src % `python nn_train.py ../out/dataset ../out/models`
-- Train RNN.
+- Train DROCC.
   - /src % `python drocc_train.py --data_path ../out/dataset --model_dir ../out/models  --only_ce_epochs 10 --metric F1`
-- Evaluation
-  - /src % `python eval.py --nn_model ../out/models/nn_network.pt --rnn_model ../out/models --data_path ../out/dataset`
+
 # Test Notes
 
 #### Zeek running time: 222 seconds
 
-#### Robust period time: 1849 seconds on 13256 connection records (394 events, in which 304 has period)
+#### Robust period time: 1849 seconds on 13256 connection records (394 events, in which 304 used for periodicity)
 
 ####
