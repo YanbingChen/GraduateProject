@@ -70,7 +70,7 @@ def robust_period_full(x, wavelet_method, num_wavelet, lmb, c, zeta=1.345):
     W = modwt(y_prime, wavelet_method, level=num_wavelet)
 
     # compute wavelet variance for all levels
-    # TODO Clarifying Lj, so we can omit first Lj from wj
+    # Clarifying Lj, so we can omit first Lj from wj
     bivar = np.array([biweight_midvariance(w) for w in W])
 
     # 3) Robust single periodicity detection
@@ -81,7 +81,7 @@ def robust_period_full(x, wavelet_method, num_wavelet, lmb, c, zeta=1.345):
     periodograms = []
     p_vals = []
     for i, x in enumerate(X):
-        print(f'Calculating periodogram for level {i+1}')
+        # print(f'Calculating periodogram for level {i+1}')
         perio = m_perio_reg(x)
         p_val, _ = fisher_g_test(perio)
         periodograms.append(perio)

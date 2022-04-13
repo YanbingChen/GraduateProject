@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, f1_score
 
 try:
     from termcolor import cprint
@@ -29,7 +29,7 @@ Use the average meter to keep track of average of the loss or
 the test accuracy! Just call the update function, providing the
 quantities being added, and the counts being added
 '''
-class AucMeter():
+class AveMeter():
     reals = []
     predicts = []
 
@@ -50,38 +50,50 @@ class AucMeter():
         score = roc_auc_score(real_res, predicts_res)
         return score
 
+    def get_f1(self):
+        real_res = np.array([])
+        for i in self.reals:
+            real_res = np.concatenate((real_res, i))
+        predicts_res = np.array([])
+        for i in self.predicts:
+            predicts_res = np.concatenate((predicts_res, i))
+        score = f1_score(real_res, predicts_res)
+        return score
+
 '''
     使用指定网路net 和数据加载器loader 运行一遍网络。如果Train==True 则训练网络，否则测试网络准确性
 '''
-def run(net, epoch, loader, optimizer, criterion, train=True):
+def run(net, epoch, loader, optimizer, criterion, run_type="Train"):
     # Initialize
     test_accuracy = None
-    if not train:
-        test_accuracy = AucMeter()
+    if run_type is not "Train":
+        test_accuracy = AveMeter()
 
     ave_loss = torch.zeros(1)
     batch_count = 0
 
     # Run one epoch
     for i, (datapoint, labels) in enumerate(loader):
-        outputs = net(datapoint)        # 前向传播，获取网络输出
+        outputs = net(datapoint.float())        # 前向传播，获取网络输出
         labels = labels.type(torch.LongTensor)      # 获取数据label
         loss = criterion(outputs, labels)       # 使用 损失函数 计算label 和网络输出的差
         ave_loss += loss
         batch_count += 1
 
-        if train:   # 如果是训练模式，则对网络计算后向传播并使用optimizer优化网络参数
+        if run_type is "Train":   # 如果是训练模式，则对网络计算后向传播并使用optimizer优化网络参数
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        if not train:       # 如果是测试模式，则记录 accuracy
+        else:       # 如果是测试模式，则记录 accuracy
             out_predict = torch.argmax(outputs, dim=1)
             test_accuracy.update(labels.numpy(), out_predict.numpy())
 
     ave_loss /= batch_count
 
-    if train:
+    if run_type is "Train":
         return ave_loss, None
+    elif run_type is "Validate":
+        return ave_loss, test_accuracy.get_f1()
     return ave_loss, test_accuracy.get_auc()
 
         
@@ -119,7 +131,7 @@ def train(net, train_loader, test_loader, cfg):
             # HINT - you might need to perform some step before and after running the network
             # on the test set
             # Run the network on the test set, and get the loss and accuracy on the test set 
-            loss, acc = run(net, i, test_loader, optimizer, criterion, train=False)
+            loss, acc = run(net, i, test_loader, optimizer, criterion, run_type="Validate")
             log_text = "Epoch: %d, Test Accuracy:%2f" % (i, acc)
             log_print(log_text, color='red', attrs=['bold'])
 
