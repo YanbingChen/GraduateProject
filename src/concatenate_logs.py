@@ -2,7 +2,7 @@ import os
 from parse import parse
 import numpy as np
 
-# Process data, format csv, plot, output
+# Process data, summarize & format tsv, output
 class log_concatenator():
     def __init__(self, fields, types, records):
         self.datapoints = records

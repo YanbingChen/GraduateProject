@@ -1,5 +1,7 @@
 module My_Features;
 
+# Extracted customized features
+
 export 
 {
     redef record Conn::Info += {
