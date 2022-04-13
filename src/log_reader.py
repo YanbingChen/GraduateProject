@@ -12,15 +12,15 @@ import csv
 @total_ordering
 class LogRecord:
     values = []
-    hash_elements = []
     timestamp = 0.0
+    param_unique_id = ""
 
     def __init__(self, timestamp, values, hash_elements=[]):
         assert isinstance(timestamp, float), "[LogRecord] Argument 'timestamp' type must be Float."
         assert isinstance(values, list), "[LogRecord] Argument 'values' type must be List."
         self.values = values
         self.timestamp = timestamp
-        self.hash_elements = hash_elements
+        self.param_unique_id = self.gen_uniqueID(values, hash_elements)
 
     def get_timestamp(self):
         return self.timestamp
@@ -35,26 +35,13 @@ class LogRecord:
         self.values[key] = value
 
     def unique_id(self):        # unique_id 相同 代表 我们定义事件相同
-        return hash(self)
+        return self.param_unique_id
 
     def uid(self):              # uid 相同 代表 是同一个 Connection
         return self.values[1]
 
     def add_value(self, newValue):
         self.values.append(newValue)
-
-    def __hash__(self):
-        hash_elements = self.values
-        if len(self.hash_elements) != 0:
-            new_elements = []
-            for i, val in enumerate(self.hash_elements):
-                new_elements.append(self.values[val])
-            hash_elements = new_elements
-
-        h = 0x35254173
-        for val in hash_elements:
-            h ^= hash(val)
-        return h
 
     def __len__(self):
         return len(self.values)
@@ -76,9 +63,17 @@ class LogRecord:
         assert isinstance(other, LogRecord), "[LogRecord] Comparison only between LogRecords."
         return self.timestamp < other.get_timestamp()
 
+    @staticmethod
+    def gen_uniqueID(values, interest_fields):
+        hash_elements = [values[hash_idx] for hash_idx in interest_fields]
+        unique_id = ""
+        for ele in hash_elements:
+            unique_id += ele + ","
+        return unique_id
 
 class LogReader:
     fields = {}
+    field_name = {}
     records = []
 
     def __init__(self, path, hash_rule=[]):
@@ -99,6 +94,7 @@ class LogReader:
             self.factory_id = len(split_line)
             for i, field in enumerate(split_line):
                 self.fields[field] = i
+                self.field_name[i] = field
 
             line = tsvfile.readline()
             while line.startswith("#"):
@@ -110,6 +106,7 @@ class LogReader:
                 for rule in hash_rule:
                     new_rule.append(self.fields[rule])
                 hash_rule = new_rule
+            self.hash_rule = hash_rule
 
             while len(line) != 0:
                 if not line.startswith("#"):
@@ -153,6 +150,9 @@ class LogReader:
 
     def get_fields(self):
         return self.fields
+
+    def get_hash_fields(self):
+        return self.hash_rule
 
     def add_field(self, newKey):
         result = self.factory_id

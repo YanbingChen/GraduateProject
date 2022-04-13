@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from timeline_mapping import TimelineMap
 from log_reader import LogReader
@@ -11,7 +13,7 @@ import random
 random.seed(42)
 np.random.seed(42)
 
-def generate_anormal(normal_data, portion, field_interest, field_names):
+def generate_anormal_v2(normal_data, portion, field_interest, field_names):
     normal_shape = normal_data.shape
     anormal_count = int(normal_shape[0] * portion)
     anormal_shape = (anormal_count, normal_shape[1])
@@ -136,3 +138,39 @@ def generate_anormal(normal_data, portion, field_interest, field_names):
                 anormal_data[i, ptr] = 0.0
                 ptr += 1
     return anormal_data
+
+def generate_anormal(log_reader, avoid_fields=[]):
+    rand_record = random.choice(log_reader)
+    anormal_record = copy.deepcopy(rand_record)
+
+    num_fields = ['id.orig_p', 'id.resp_p', 'duration', 'orig_bytes', 'resp_bytes', 'missed_bytes', 'orig_pkts', 'orig_ip_bytes',
+                  'resp_pkts', 'resp_ip_bytes', 'orig_ttl', 'dest_ttl', 'pkts_count', 'min_IAT', 'max_IAT', 'mean_IAT']
+    anormal_record.timestamp += 0.001
+
+    rand_num = 0
+    while rand_num == 0:
+        rand_num = random.randint(0, 32767)
+    for field in log_reader.fields.keys():
+        if field in avoid_fields or field in ['ts', 'uid']:
+            continue
+        elif rand_num & 1:
+            # Change this field
+            if field == 'land':
+                if anormal_record.values[log_reader.fields[field]] == "T":
+                    anormal_record.values[log_reader.fields[field]] = "F"
+                else:
+                    anormal_record.values[log_reader.fields[field]] = "T"
+            elif field == 'proto':
+                if anormal_record.values[log_reader.fields[field]] == "tcp":
+                    anormal_record.values[log_reader.fields[field]] = "udp"
+                else:
+                    anormal_record.values[log_reader.fields[field]] = "tcp"
+            elif field in num_fields:
+                if anormal_record.values[log_reader.fields[field]].isnumeric():
+                    val = int(anormal_record.values[log_reader.fields[field]])
+                    val += 1
+                    val *= random.randrange(0, 100) / 10.0
+                    anormal_record.values[log_reader.fields[field]] = str(val)
+        rand_num >>= 1
+
+    return anormal_record
