@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from sklearn.metrics import roc_auc_score, precision_recall_fscore_support
+from sklearn.metrics import roc_auc_score, precision_recall_fscore_support, plot_roc_curve
 from torch.utils.data import DataLoader, Dataset
 from collections import OrderedDict
 import numpy as np
@@ -143,13 +143,14 @@ def run_test(nn, dataset_dir):
     a = 1 - labels
     b = 1 - scores
     auc_score = roc_auc_score(a, b)
-    # Evaluation based on https://openreview.net/forum?id=BJJLHbb0-   --referred from DROCC (bullshit but beautiful)
-    thresh = np.percentile(b, 20)
-    y_pred = np.where(b >= thresh, 1, 0)
-    prec, recall, f1_score, _ = precision_recall_fscore_support(
-        a, y_pred, average="binary")
+    # Evaluation based on https://openreview.net/forum?id=BJJLHbb0-
+    #thresh = np.percentile(b, 10)
+    #y_pred = np.where(b >= thresh, 1, 0)
+    #prec, recall, f1_score, _ = precision_recall_fscore_support(
+       # a, y_pred, average="binary")
 
-    return ts, scores, labels, auc_score, prec, recall, f1_score
+    return ts, scores, labels, auc_score\
+        #, prec, recall, f1_score
 
 
 if __name__ == '__main__':
@@ -166,7 +167,7 @@ if __name__ == '__main__':
     parser.add_argument('--ascent_num_steps', type=int, default=50, metavar='N',
                         help='Number of gradient ascent steps')
     parser.add_argument('--hd', type=int, default=128, metavar='N',
-                        help='Number of hidden nodes for LSTM model')
+                        help='Number of hidden nodes for DNN model')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate')
     parser.add_argument('--ascent_step_size', type=float, default=0.001, metavar='LR',
@@ -208,16 +209,16 @@ if __name__ == '__main__':
 
     # Run test
     starttime = datetime.datetime.now()
-    ts, predict, gt, auc_score, prec, recall, f1_score = run_test(model, args.data_path)
+    ts, predict, gt, auc_score = run_test(model, args.data_path)
     endtime = datetime.datetime.now()
     print("Test time: " + str(endtime - starttime))
     print("Test AUC Score: " + str(auc_score))
-    print("Test F1 Score: " + str(f1_score))
-    print("Test Precision: " + str(prec))
-    print("Test Recall: " + str(recall))
+   # print("Test F1 Score: " + str(f1_score))
+   # print("Test Precision: " + str(prec))
+   # print("Test Recall: " + str(recall))
 
     with open(os.path.join(args.result_path, "drocc.csv"), 'w') as f_csv:
-        f_csv.write("timestamp,real,predict")
+        f_csv.write("timestamp,real,predict"+'\n')
         for i in range(len(ts)):
-            f_csv.write(str(ts[i]) + ',' + str(predict[i]) + ',' + str(gt[i]) + '\n')
+            f_csv.write(str(ts[i]) + ',' + str(gt[i]) + ',' + str(predict[i]) + '\n')
 
