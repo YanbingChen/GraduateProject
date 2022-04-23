@@ -39,10 +39,10 @@ class NN(nn.Module):
 
 
 '''
-    自定义网络对象，结构为: input(customized) -> hidden(100) -> ReLU -> output(2) -> LogSoftmax
+    自定义网络对象，结构为: input(customized) -> hidden(128) -> ReLU -> output(1)(probability)
     forward() 方法实现网络的前向传播
     后向传播由网络自己计算
-    save 和 load 提供了存储和读取网络参数的功能
+    save 和 load 直接继承nn.Module
 '''
 
 
@@ -54,7 +54,7 @@ class DNN(nn.Module):
     def __init__(self,
                  input_dim=2,
                  num_classes=1,
-                 num_hidden_nodes=20):
+                 num_hidden_nodes=128):
         super(DNN, self).__init__()
         self.input_dim = input_dim
         self.num_classes = num_classes
